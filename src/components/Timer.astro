@@ -1,0 +1,54 @@
+<div class="display">
+    <div class="minutes">
+        <span data-minutes class="digits">00</span>
+        <span class="label">minutos</span>
+    </div>
+
+    <span class="separator">:</span>
+
+    <div class="seconds">
+        <span data-seconds class="digits">00</span>
+        <span class="label">segundos</span>
+    </div>
+</div>
+
+<style>
+    .display {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .minutes,
+    .seconds {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .digits {
+        font-size: 12rem;
+        line-height: 16rem;
+        font-weight: 700;
+        color: #fafafa;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .label {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100%;
+        font-size: 1rem;
+        font-weight: 500;
+        color: #52525b;
+        text-align: center;
+        text-transform: uppercase;
+    }
+
+    .separator {
+        font-size: 6rem;
+        color: #a1a1aa;
+    }
+</style>
