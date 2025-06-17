@@ -5,7 +5,10 @@ import Timer from "@/components/Timer.astro";
 
 <Layout>
     <main>
-        <Timer />
+        <div class="timer-container">
+            <div class="background-image" data-background-image></div>
+            <Timer />
+        </div>
     </main>
 </Layout>
 
@@ -18,6 +21,27 @@ import Timer from "@/components/Timer.astro";
         justify-content: center;
         align-items: center;
     }
+
+    .timer-container {
+        position: relative;
+        width: 100vw;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .background-image {
+        width: 400px;
+        height: 200px;
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        border-radius: 8px;
+        display: none;
+    }
 </style>
 
 <script src="@/scripts/timer.js"></script>
+<script src="@/scripts/timer-background.js"></script>

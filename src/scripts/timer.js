@@ -6,6 +6,7 @@ class Timer {
     this.interval = null;
     this.isRunning = false;
     this.isPaused = false;
+    this.audioEnabled = false;
 
     // Enables real-time synchronization across browser tabs
     this.channel = new BroadcastChannel("timer-sync");
@@ -15,6 +16,7 @@ class Timer {
 
     this.loadState();
     this.updateUI();
+    this.initializeAudio();
   }
 
   // Restores timer state from previous session
@@ -56,18 +58,28 @@ class Timer {
 
   // Synchronizes timer state when other tabs make changes
   handleBroadcast(data) {
-    // Update local state to match
-    this.timeRemaining = data.timeRemaining;
-    this.isRunning = data.isRunning;
-    this.isPaused = data.isPaused;
-
-    // Sync the interval state
-    this.clearInterval();
-    if (this.isRunning && !this.isPaused) {
-      this.startInterval();
+    // Ignore non-timer messages (image updates, etc.)
+    if (
+      data.type &&
+      (data.type === "imageUpdated" || data.type === "imageRemoved")
+    ) {
+      return;
     }
 
-    this.updateUI();
+    // Only process timer state updates
+    if (typeof data.timeRemaining === "number") {
+      this.timeRemaining = data.timeRemaining;
+      this.isRunning = data.isRunning ?? false;
+      this.isPaused = data.isPaused ?? false;
+
+      // Sync the interval state
+      this.clearInterval();
+      if (this.isRunning && !this.isPaused) {
+        this.startInterval();
+      }
+
+      this.updateUI();
+    }
   }
 
   // Begins countdown
@@ -75,6 +87,7 @@ class Timer {
     this.isRunning = true;
     this.isPaused = false;
 
+    this.enableAudioOnUserAction();
     this.startInterval();
     this.updateUI();
     this.updateState(shouldBroadcast);
@@ -180,8 +193,72 @@ class Timer {
 
     this.updateUI();
     this.updateState();
+    this.playCompletionSound();
 
     console.log("Timer completed!");
+  }
+
+  // Initializes audio and enables it on first user interaction
+  initializeAudio() {
+    const audio = document.getElementById("timer-sound");
+    if (!audio) return;
+
+    // Enable audio on first user interaction
+    const enableAudio = () => {
+      audio
+        .play()
+        .then(() => {
+          audio.pause();
+          audio.currentTime = 0;
+          this.audioEnabled = true;
+          console.log("Audio enabled");
+        })
+        .catch(() => {
+          console.log("Audio could not be enabled");
+        });
+
+      // Remove listeners after first interaction
+      document.removeEventListener("click", enableAudio);
+      document.removeEventListener("keydown", enableAudio);
+    };
+
+    document.addEventListener("click", enableAudio);
+    document.addEventListener("keydown", enableAudio);
+  }
+
+  // Enables audio when user takes action (for cross-tab audio)
+  enableAudioOnUserAction() {
+    const audio = document.getElementById("timer-sound");
+    if (audio && !this.audioEnabled) {
+      audio
+        .play()
+        .then(() => {
+          audio.pause();
+          audio.currentTime = 0;
+          this.audioEnabled = true;
+          console.log("Audio enabled via user action");
+        })
+        .catch(() => {
+          console.log("Audio could not be enabled via user action");
+        });
+    }
+  }
+
+  // Plays sound when timer completes
+  playCompletionSound() {
+    const audio = document.getElementById("timer-sound");
+    if (audio) {
+      audio.currentTime = 0;
+      audio
+        .play()
+        .then(() => {
+          this.audioEnabled = true;
+          console.log("Audio played successfully");
+        })
+        .catch((error) => {
+          console.log("Could not play timer completion sound:", error);
+        });
+    }
   }
 
   // Cleanup method
