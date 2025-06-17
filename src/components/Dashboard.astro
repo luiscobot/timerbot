@@ -1,3 +1,7 @@
+---
+import ImageDrop from "@/components/ImageDrop.astro";
+---
+
 <div class="dashboard">
     <div class="display">
         <div class="minutes">
@@ -17,6 +21,14 @@
         <button data-toggle class="control start">Start</button>
         <button data-reset class="control reset">Reset</button>
     </div>
+
+    <div class="image-section">
+        <ImageDrop />
+    </div>
+
+    <audio id="timer-sound" preload="auto">
+        <source src="/timer-complete.mp3" type="audio/mpeg">
+    </audio>
 </div>
 
 <style>
@@ -24,6 +36,11 @@
         display: flex;
         flex-direction: column;
         gap: 48px;
+    }
+
+    .image-section {
+        display: flex;
+        justify-content: center;
     }
 
     .display {
