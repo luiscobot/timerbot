@@ -6,12 +6,14 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "lint": "oxlint src/"
   },
   "dependencies": {
     "astro": "^5.9.1"
   },
   "devDependencies": {
+    "oxlint": "^1.1.0",
     "wrangler": "^4.19.1"
   }
 }
