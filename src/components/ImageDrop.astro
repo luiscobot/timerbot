@@ -1,19 +1,21 @@
 <div class="image-drop" data-image-drop>
     <div class="drop-zone" data-drop-zone>
         <div class="drop-content">
-            <svg
-                width="48"
-                height="48"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-            >
+            <svg class="icon" viewBox="0 0 24 24" fill="none">
                 <path
-                    d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"
-                ></path>
-                <circle cx="12" cy="13" r="3"></circle>
+                    d="M4 7H6.96482C7.29917 7 7.6114 6.8329 7.79687 6.5547L9.20313 4.4453C9.3886 4.1671 9.70083 4 10.0352 4H13.9648C14.2992 4 14.6114 4.1671 14.7969 4.4453L16.2031 6.5547C16.3886 6.8329 16.7008 7 17.0352 7H20C20.5523 7 21 7.44772 21 8V19C21 19.5523 20.5523 20 20 20H4C3.44772 20 3 19.5523 3 19V8C3 7.44772 3.44772 7 4 7Z"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="square"
+                    stroke-linejoin="round"></path>
+                <path
+                    d="M15 13C15 14.6569 13.6569 16 12 16C10.3431 16 9 14.6569 9 13C9 11.3431 10.3431 10 12 10C13.6569 10 15 11.3431 15 13Z"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="square"
+                    stroke-linejoin="round"></path>
             </svg>
+
             <p class="drop-text">
                 Arrastra una imagen aquí o haz clic para seleccionar
             </p>
@@ -23,7 +25,15 @@
     </div>
     <div class="image-preview" data-image-preview hidden>
         <img data-preview-img alt="Imagen seleccionada" />
-        <button class="remove-btn" data-remove-image>×</button>
+        <button class="remove-image" data-remove-image>
+            <svg class="icon" viewBox="0 0 24 24" fill="none">
+                <path
+                    fill-rule="evenodd"
+                    clip-rule="evenodd"
+                    d="M4.18934 4.18934C4.77513 3.60355 5.72487 3.60355 6.31066 4.18934L12 9.87868L17.6893 4.18934C18.2751 3.60355 19.2249 3.60355 19.8107 4.18934C20.3964 4.77513 20.3964 5.72487 19.8107 6.31066L14.1213 12L19.8107 17.6893C20.3964 18.2751 20.3964 19.2249 19.8107 19.8107C19.2249 20.3964 18.2751 20.3964 17.6893 19.8107L12 14.1213L6.31066 19.8107C5.72487 20.3964 4.77513 20.3964 4.18934 19.8107C3.60355 19.2249 3.60355 18.2751 4.18934 17.6893L9.87868 12L4.18934 6.31066C3.60355 5.72487 3.60355 4.77513 4.18934 4.18934Z"
+                    fill="currentColor"></path>
+            </svg>
+        </button>
     </div>
 </div>
 
@@ -31,12 +41,11 @@
     .image-drop {
         width: 100%;
         max-width: 400px;
-        margin: 0 auto;
     }
 
     .drop-zone {
-        border: 2px dashed #52525b;
-        border-radius: 8px;
+        border: 2px dashed #3f3f46;
+        border-radius: 16px;
         padding: 32px;
         text-align: center;
         cursor: pointer;
@@ -46,11 +55,19 @@
 
     .drop-zone:hover,
     .drop-zone.drag-over {
-        border-color: #65a30d;
-        background-color: #1c1f1a;
+        border-color: #059669;
+        background-color: #0596691a;
     }
 
-    .drop-content svg {
+    .drop-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .drop-content .icon {
+        width: 48px;
+        height: 48px;
         color: #a1a1aa;
         margin-bottom: 16px;
     }
@@ -59,18 +76,18 @@
         color: #fafafa;
         font-size: 1rem;
         font-weight: 500;
-        margin: 0 0 8px 0;
+        text-wrap: balance;
+        margin-bottom: 8px;
     }
 
     .drop-hint {
         color: #a1a1aa;
         font-size: 0.875rem;
-        margin: 0;
     }
 
     .image-preview {
         position: relative;
-        border-radius: 8px;
+        border-radius: 16px;
         overflow: hidden;
         background-color: #18181b;
     }
@@ -81,7 +98,7 @@
         display: block;
     }
 
-    .remove-btn {
+    .remove-image {
         position: absolute;
         top: 8px;
         right: 8px;
@@ -89,9 +106,9 @@
         height: 32px;
         border: none;
         border-radius: 50%;
-        background-color: rgba(0, 0, 0, 0.7);
+        padding: 0;
+        background-color: #52525b;
         color: #fafafa;
-        font-size: 18px;
         cursor: pointer;
         display: flex;
         align-items: center;
@@ -99,8 +116,13 @@
         transition: background-color 0.2s ease;
     }
 
-    .remove-btn:hover {
-        background-color: rgba(0, 0, 0, 0.9);
+    .remove-image:hover {
+        background-color: #dc2626;
+    }
+
+    .remove-image .icon {
+        width: 16px;
+        height: 16px;
     }
 
     [hidden] {

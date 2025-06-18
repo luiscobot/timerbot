@@ -11,12 +11,10 @@ import TimerDisplay from "@/components/TimerDisplay.astro";
         <button data-reset class="control reset">Reiniciar</button>
     </div>
 
-    <div class="image-section">
-        <ImageDrop />
-    </div>
+    <ImageDrop />
 
     <audio id="timer-sound" preload="auto">
-        <source src="/timer-complete.mp3" type="audio/mpeg">
+        <source src="/timer-complete.mp3" type="audio/mpeg" />
     </audio>
 </div>
 
@@ -24,12 +22,8 @@ import TimerDisplay from "@/components/TimerDisplay.astro";
     .dashboard {
         display: flex;
         flex-direction: column;
+        align-items: center;
         gap: 48px;
-    }
-
-    .image-section {
-        display: flex;
-        justify-content: center;
     }
 
     .display {
@@ -72,6 +66,7 @@ import TimerDisplay from "@/components/TimerDisplay.astro";
     }
 
     .controls {
+        width: 100%;
         display: flex;
         justify-content: center;
         gap: 48px;
@@ -85,17 +80,31 @@ import TimerDisplay from "@/components/TimerDisplay.astro";
         font-size: 1rem;
         font-weight: 500;
         color: #fafafa;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
     }
 
     .control.start {
-        background-color: #65a30d;
+        background-color: #84cc16cc;
+    }
+
+    .control.start:hover {
+        background-color: #84cc16;
     }
 
     .control.pause {
-        background-color: #d97706;
+        background-color: #eab308cc;
+    }
+
+    .control.pause:hover {
+        background-color: #eab308;
     }
 
     .control.reset {
-        background-color: #52525b;
+        background-color: #0ea5e9cc;
+    }
+
+    .control.reset:hover {
+        background-color: #0ea5e9;
     }
 </style>
