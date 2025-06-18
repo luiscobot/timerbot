@@ -169,13 +169,13 @@ class Timer {
     let className;
 
     if (!this.isRunning) {
-      text = "Start";
+      text = "Iniciar";
       className = "start";
     } else if (this.isPaused) {
-      text = "Resume";
+      text = "Reanudar";
       className = "start";
     } else {
-      text = "Pause";
+      text = "Pausar";
       className = "pause";
     }
 
