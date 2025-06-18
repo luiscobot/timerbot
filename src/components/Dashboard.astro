@@ -1,21 +1,10 @@
 ---
 import ImageDrop from "@/components/ImageDrop.astro";
+import TimerDisplay from "@/components/TimerDisplay.astro";
 ---
 
 <div class="dashboard">
-    <div class="display">
-        <div class="minutes">
-            <span data-minutes class="digits">00</span>
-            <span class="label">minutos</span>
-        </div>
-
-        <span class="separator">:</span>
-
-        <div class="seconds">
-            <span data-seconds class="digits">00</span>
-            <span class="label">segundos</span>
-        </div>
-    </div>
+    <TimerDisplay />
 
     <div class="controls">
         <button data-toggle class="control start">Start</button>
