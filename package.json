@@ -10,10 +10,10 @@
     "lint": "oxlint src/"
   },
   "dependencies": {
-    "astro": "^5.9.1"
+    "astro": "^5.9.4"
   },
   "devDependencies": {
-    "oxlint": "^1.1.0",
-    "wrangler": "^4.19.1"
+    "oxlint": "^1.2.0",
+    "wrangler": "^4.20.3"
   }
 }
