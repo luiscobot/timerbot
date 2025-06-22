@@ -1,4 +1,4 @@
-<div class="display">
+<div data-timer-display class="display pending">
     <div class="minutes">
         <span data-minutes class="digits">00</span>
         <span class="label">minutos</span>
@@ -50,5 +50,10 @@
     .separator {
         font-size: 6rem;
         color: #a1a1aa;
+    }
+
+    .pending .digits {
+        opacity: 0;
+        transition: opacity 0.3s ease-in-out;
     }
 </style>

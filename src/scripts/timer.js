@@ -15,6 +15,7 @@ class Timer {
     });
 
     this.loadState();
+    this.revealTimer();
     this.updateUI();
     this.initializeAudio();
   }
@@ -47,6 +48,14 @@ class Timer {
 
     if (shouldBroadcast) {
       this.channel.postMessage(state);
+    }
+  }
+
+  // Reveal timer interface
+  revealTimer() {
+    const targetElement = document.querySelector("[data-timer-display]");
+    if (targetElement) {
+      targetElement.classList.remove("pending");
     }
   }
 
