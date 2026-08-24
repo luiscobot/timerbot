@@ -1,0 +1,28 @@
+<%= turbo_stream_from @timer %>
+
+<div class="timer-container">
+  <%= render "timers/clock", timer: @timer %>
+</div>
+
+<%# Outside the positioned container, so the inset measures from the page.
+
+    Ships without .idle: with it in the markup, anything that stops the
+    controller leaves a button invisible and inert.
+
+    The reveals listen on the window: a person in the room gestures at the
+    page, not the corner. %>
+<button type="button"
+        class="control fullscreen"
+        data-controller="fullscreen"
+        data-action="click->fullscreen#toggle
+                     pointermove@window->fullscreen#reveal:passive
+                     pointerdown@window->fullscreen#reveal:passive
+                     keydown@window->fullscreen#keydown
+                     fullscreenchange@document->fullscreen#syncLabel"
+        aria-label="Pantalla completa"
+        title="Pantalla completa (F)">
+  <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" aria-hidden="true">
+    <path class="expand" d="M8 4H6a2 2 0 0 0-2 2v2m12-4h2a2 2 0 0 1 2 2v2m0 8v2a2 2 0 0 1-2 2h-2m-8 0H6a2 2 0 0 1-2-2v-2" />
+    <path class="collapse" d="M4 9h3a2 2 0 0 0 2-2V4m11 5h-3a2 2 0 0 1-2-2V4m0 16v-3a2 2 0 0 1 2-2h3M4 15h3a2 2 0 0 1 2 2v3" />
+  </svg>
+</button>

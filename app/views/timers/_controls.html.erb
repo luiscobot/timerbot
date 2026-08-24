@@ -1,0 +1,16 @@
+<%# Plain forms: Turbo submits them and the 204 means nothing to navigate to;
+    the change comes back over the broadcast. .button_to is display: contents,
+    so the buttons are the flex items. %>
+<div id="timer_controls" class="controls">
+  <% if timer.running? %>
+    <%= button_to "Pausar", timer_run_path(timer), method: :delete,
+                  class: "control pause", title: "Pausar (Espacio)" %>
+  <% else %>
+    <% label = timer.paused? ? "Reanudar" : "Iniciar" %>
+    <%= button_to label, timer_run_path(timer), class: "control start",
+                  title: "#{label} (Espacio)" %>
+  <% end %>
+
+  <%= button_to "Reiniciar", timer_reset_path(timer), class: "control reset",
+                title: "Reiniciar (R)" %>
+</div>

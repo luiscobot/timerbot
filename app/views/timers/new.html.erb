@@ -1,0 +1,72 @@
+<% minutes, seconds = timer_digits(@timer.duration) %>
+
+<main class="dashboard-page"
+      data-controller="shortcuts duration"
+      data-duration-max-value="<%= Timer::MAX_DURATION %>"
+      data-duration-passed-message-value="<%= Timer::DEADLINE_PASSED %>"
+      data-duration-beyond-message-value="<%= Timer::DEADLINE_BEYOND %>"
+      data-action="submit->duration#submit keydown@window->shortcuts#handle">
+  <%# One form, two ways out. Iniciar submits with start; the create controller
+      takes over Proyectar, which points two tabs. With JavaScript off it posts
+      normally and lands on the dashboard. %>
+  <%= form_with url: timers_path, class: "dashboard",
+                data: { controller: "create" } do |form| %>
+    <div class="editable-clock">
+      <%# Carries the value in the POST; the duration controller keeps it in
+          step with the digits. %>
+      <%= form.hidden_field :duration, value: @timer.duration,
+                            data: { duration_target: "field" } %>
+
+      <%# The instant behind the hour on the pill, and the only sign the page
+          is aimed at one. Empty is no hour chosen. %>
+      <%= form.hidden_field :deadline, value: @deadline,
+                            data: { duration_target: "deadline" } %>
+
+      <div class="clock">
+        <%= render "timers/units", minutes: minutes, seconds: seconds %>
+      </div>
+    </div>
+
+    <%# No Reiniciar: nothing yet to put back. %>
+    <div class="controls">
+      <%= form.submit "Iniciar", name: "start",
+                      class: "control start", title: "Iniciar (Espacio)" %>
+
+      <%# Empty until the client fills it: the options are instants, and the
+          zone is the browser's. Only hours inside MAX_DURATION are offered, so
+          an hour is never picked and then refused. No name — the instant
+          travels in the hidden field above. %>
+      <label class="control deadline" title="Hasta las (H)"
+             data-action="click->duration#openList">
+        <span class="caption">Hasta las</span>
+        <select data-duration-target="time"
+                aria-label="Hasta las"
+                data-action="change->duration#aim
+                             mousedown->duration#restock
+                             focus->duration#restock">
+          <option value="">--:--</option>
+        </select>
+
+        <%# Lies over the select, so clicking the arrow opens the list the
+            way clicking the hour does. %>
+        <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="m8 10 3.293 3.293a1 1 0 0 0 1.414 0L16 10" />
+        </svg>
+      </label>
+    </div>
+
+    <%# Outside .editable-clock: absolute against the body, like the
+        dashboard's. check runs first, and project drops what it prevents. %>
+    <button type="submit" class="control watch"
+            data-action="click->duration#check click->create#project"
+            aria-label="Proyectar" title="Proyectar (P)">
+      <%= render "shared/watch_icon" %>
+    </button>
+  <% end %>
+
+  <%# Outside .editable-clock, whose transform would become its containing
+      block: the message anchors to the body, like the corner buttons. %>
+  <%= render "shared/error" %>
+
+  <%= render "shared/appearance" %>
+</main>
