@@ -1,0 +1,6 @@
+one:
+  slug: abc123
+  projection_slug: def456
+  duration: 600
+  status: idle
+  remaining_seconds: 600

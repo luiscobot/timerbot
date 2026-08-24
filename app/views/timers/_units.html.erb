@@ -1,0 +1,17 @@
+<%# Plain text: broadcasts re-render this with no request behind them, and the
+    projection renders it with no duration controller above. Each page's
+    controllers swap in what it needs — the editor, the animated cells, the
+    editable class. %>
+<div class="minutes">
+  <span class="digits"
+        data-timer-target="minutes"
+        data-duration-target="minutes"><%= minutes %></span>
+  <span class="label">minutos</span>
+</div>
+<span class="separator" aria-hidden="true"></span>
+<div class="seconds">
+  <span class="digits"
+        data-timer-target="seconds"
+        data-duration-target="seconds"><%= seconds %></span>
+  <span class="label">segundos</span>
+</div>

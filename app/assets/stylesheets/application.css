@@ -1,0 +1,676 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+}
+
+html {
+  height: 100%;
+}
+
+/* min-height: a fixed 100% clips the 100dvh containers when a mobile toolbar
+   retracts. Relative so the corner buttons anchor to the document. */
+body {
+  position: relative;
+  min-height: 100%;
+}
+
+:root {
+  /* One page gutter. Everything at a page edge derives from this. */
+  --gutter: 24px;
+
+  /* Every clock measurement is a ratio of this, so it scales as one object.
+     188px is the designed size and cap; the other terms pull it down.
+       50vw - 34px - g   two fields plus 60px of chrome inside the gutters,
+                         8px spare so rounding cannot cause a scrollbar
+       42vh              landscape phones pass the width term at ~390px tall */
+  --clock-field: min(188px, calc(50vw - 34px - var(--gutter)), 42vh);
+
+  /* 144/188 of the field. */
+  --clock-type: calc(var(--clock-field) * 0.766);
+
+  /* The one accent: focus rings and ::selection. Zinc, so it marks without
+     colouring. */
+  --accent: #71717a;
+
+  color-scheme: dark;
+
+  /* The only roles that swap with the theme. The bright timer fills and the
+     dark corner buttons stay the same in both. */
+  --page: #09090b;
+  --ink: #fafafa;
+  /* 5.81:1 on --field, 4.07:1 on --field-hover. */
+  --caption: #a1a1aa;
+
+  --field: #27272a;
+  --field-hover: #3f3f46;
+
+  /* Separates the dark buttons from the dark page (1.12:1 without it). Light
+     drops it: the same fills sit at 16.97:1 there. */
+  --edge-ring: #0009;
+
+  /* Sits on the dark pill, not the page, so it does not swap. 6.40:1. */
+  --error: #f87171;
+}
+
+/* data-theme, not prefers-color-scheme: a choice made in the corner beats the
+   OS. Dark stays the base, so JS off gets dark. Light: ink 19.06:1, caption
+   6.09:1 on --field, ring 3.61:1 on --page. */
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --page: #fafafa;
+  --ink: #09090b;
+  --caption: #52525b;
+
+  --field: #e4e4e7;
+  --field-hover: #d4d4d8;
+
+  --edge-ring: transparent;
+}
+
+/* Self-hosted: Google Fonts' build has no cv01, which the clock needs.
+   Subset to Latin with the two features used, 71 KB instead of 344:
+     pyftsubset InterVariable.woff2 --output-file=InterVariable.woff2 \
+       --flavor=woff2 --layout-features+=tnum,cv01 \
+       --unicodes="U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,\
+U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+2074,U+20AC,U+2122,U+2191,U+2193,\
+U+2212,U+2215,U+FEFF,U+FFFD"
+   Licence beside the file. */
+@font-face {
+  font-family: InterVariable;
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("InterVariable.woff2") format("woff2");
+}
+
+body {
+  font-family: InterVariable, system-ui, sans-serif;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  color: var(--ink);
+  background-color: var(--page);
+}
+
+button {
+  font: inherit;
+}
+
+/* Ink pinned: selection overrides whatever colour the element has. */
+::selection {
+  background-color: var(--accent);
+  color: #fafafa;
+}
+
+/* No selection paint on the digits: the ring already marks the unit.
+   Transparent, not user-select: none — a drag still has to select for typing
+   to replace it. Covers the .numeral cells and the swapped-in editor. */
+.digits::selection,
+.digits *::selection {
+  background-color: transparent;
+  color: var(--ink);
+  /* iOS ignores color here and keeps ::selection's ink, white on white on a
+     light page. -webkit-text-fill-color is the one it honours. */
+  -webkit-text-fill-color: var(--ink);
+}
+
+/* --- Editable clock --- */
+
+/* The ring goes on every unit, transparent until focused. Not on the .editable
+   rule below: that class lands after first paint, and an outline arriving with
+   a transition fades from currentColor — a white ring on every load. */
+.minutes,
+.seconds {
+  border-radius: calc(var(--clock-field) * 0.128);
+  outline: 2px solid transparent;
+  outline-offset: 4px;
+  /* 0.3s: the two greys are close enough that faster is invisible. */
+  transition: background-color 0.3s ease, outline-color 0.3s ease;
+}
+
+/* A grey field invites the click. Keyed off the class the controller adds, not
+   the page: the dashboard clock is editable only while idle. */
+.minutes:has(.digits.editable),
+.seconds:has(.digits.editable) {
+  background-color: var(--field);
+}
+
+:is(.minutes, .seconds):has(.digits.editable):hover {
+  background-color: var(--field-hover);
+}
+
+/* The class the controller toggles, not :focus-within: focus sits on the
+   editor it builds. */
+:is(.minutes, .seconds):has(.digits.editing) {
+  outline-color: var(--accent);
+}
+
+/* Under the corner buttons, where the page is empty: in the flow it pushes the
+   button down, and reserved room is wasted on every page without a message.
+   44px is the buttons' height, 12px the gap. */
+.error {
+  position: absolute;
+  top: calc(max(var(--gutter), env(safe-area-inset-top)) + 44px + 12px);
+  left: 0;
+  right: 0;
+  width: max-content;
+  max-width: calc(100vw - var(--gutter) * 2);
+  margin: 0 auto;
+  /* Same object as a corner button: dark pill, layered edge. */
+  padding: 8px 20px;
+  border-radius: 999px;
+  background-color: #18181b;
+  box-shadow:
+    inset 0 0 0 1px #ffffff08,
+    inset 0 1px #ffffff0a,
+    0 0 0 1px var(--edge-ring),
+    0 4px 4px #0000001a;
+  font-size: 14px;
+  text-align: center;
+  text-wrap: balance;
+  color: var(--error);
+  /* Same function as the keyframe, so the two interpolate directly. */
+  transform: translate(0, 0);
+}
+
+/* An animation, not a transition: hidden removes the element with display,
+   and nothing animates across that. */
+@keyframes error-arrive {
+  from {
+    opacity: 0;
+    transform: translate(0, -4px);
+  }
+}
+
+.error:not([hidden]) {
+  animation: error-arrive 0.15s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .error:not([hidden]) {
+    animation: none;
+  }
+}
+
+
+/* --- Dashboard --- */
+
+.dashboard-page {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--gutter);
+}
+
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* Gives way before the clock: on a landscape phone the clock is already at
+     its 42vh floor. */
+  gap: clamp(24px, 6vh, 48px);
+}
+
+/* --- Clock --- */
+
+.clock {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Dragging over the clock only highlights it. Prefixed everywhere it appears:
+   unprefixed user-select only reached Safari 17, no autoprefixer. */
+.clock {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.minutes,
+.seconds {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  /* On every page, so the numbers do not move after Iniciar. */
+  padding: 6px;
+}
+
+.digits {
+  font-size: var(--clock-type);
+  /* Full height, so the glyphs centre in the field. */
+  line-height: var(--clock-field);
+  font-weight: 700;
+  color: var(--ink);
+  /* Fixed advance: no shift while typing, no jitter while running. */
+  font-variant-numeric: tabular-nums;
+  /* cv01's "1" at the same advance. Separate line: "tnum" here would override
+     font-variant-numeric. */
+  font-feature-settings: "cv01" 1;
+  /* Square with the line box, so the field cannot collapse while edited. */
+  width: var(--clock-field);
+  text-align: center;
+}
+
+/* A ticking clock swaps its text for one cell per place. See timer_controller. */
+.digits:has(.digit) {
+  display: flex;
+}
+
+.digit {
+  position: relative;
+  flex: 1;
+  height: var(--clock-field);
+  overflow: hidden;
+}
+
+/* Two numerals, not one: a cell always holds one, so :has(.numeral) left the
+   mask on and the cell composited while still. A second only exists while the
+   two cross. */
+.digit:has(.numeral + .numeral) {
+  /* Fades the two edges a numeral crosses, so the clip does not cut it off.
+     Inset because the caption overlaps this box near its foot. */
+  --fade: calc(var(--clock-field) * 0.117);
+  --fade-inset: calc(var(--clock-field) * 0.085);
+  mask-image: linear-gradient(
+    to bottom,
+    transparent var(--fade-inset),
+    #000 calc(var(--fade-inset) + var(--fade)),
+    #000 calc(100% - var(--fade-inset) - var(--fade)),
+    transparent calc(100% - var(--fade-inset))
+  );
+}
+
+/* Outgoing and incoming numerals stack while they cross. */
+.numeral {
+  position: absolute;
+  inset: 0;
+}
+
+/* The editor swapped in while idle. An input inherits neither font nor ink,
+   and fills the span's box so the digits sit where the text did. */
+.digits input {
+  display: block;
+  width: 100%;
+  height: var(--clock-field);
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: center;
+  /* The field already shows a ring. */
+  outline: none;
+  /* A keystroke replaces the whole value; a caret would offer an insertion
+     point that does not exist. */
+  caret-color: transparent;
+  /* .clock turns selection off to keep iOS's long-press Copy menu away, and
+     WebKit lets that reach into the field; typing needs it back. */
+  -webkit-user-select: text;
+  user-select: text;
+  /* iOS's tap flash, drawn over the glyphs. */
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Absolute, so it adds no height and the numbers stay put. */
+.label {
+  position: absolute;
+  left: 0;
+  right: 0;
+  /* Same inner edge as the field's 6px padding. */
+  bottom: 6px;
+  width: 100%;
+  /* 14/188 of the field, floored where it stops being readable. */
+  font-size: max(11px, calc(var(--clock-field) * 0.0745));
+  font-weight: 500;
+  color: var(--caption);
+  /* Captions, not content: out of a drag aimed at the numbers. */
+  -webkit-user-select: none;
+  user-select: none;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+/* Drawn dots, not ":": a colon rests on the baseline and would need an offset
+   to centre. */
+.separator {
+  align-self: stretch;
+  width: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: calc(var(--clock-field) * 0.101);
+}
+
+/* The 20px column is chrome --clock-field budgets for; the dots scale. */
+.separator::before,
+.separator::after {
+  content: "";
+  width: calc(var(--clock-field) * 0.053);
+  height: calc(var(--clock-field) * 0.053);
+  border-radius: 50%;
+  background-color: var(--caption);
+}
+
+/* --- Controls --- */
+
+.controls {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  /* Backstop for a scaled page or wider font: stack, not sideways scroll. */
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+/* Each control is a button_to, so a <form> sits between .controls and its
+   button. display: contents makes the buttons the flex items. */
+.controls .button_to {
+  display: contents;
+}
+
+.control {
+  /* Fixed: the first button cycles Iniciar/Pausar/Reanudar, and sizing to the
+     label shifted the row. */
+  width: 128px;
+  padding: 0 20px;
+  border: none;
+  border-radius: 64px;
+  font-size: 16px;
+  line-height: 44px;
+  font-weight: 500;
+  color: #09090b;
+  cursor: pointer;
+  /* Transparent from the start: outline-style does not animate. */
+  outline: 2px solid transparent;
+  outline-offset: 0;
+  transition:
+    background-color 0.2s ease,
+    transform 0.2s ease-out,
+    outline-offset 0.15s ease-out;
+  /* Layered edge instead of a border: no layout size, stays 44px tall. */
+  box-shadow:
+    inset 0 0 0 1px #ffffff26,
+    inset 0 1px #ffffff4d,
+    0 0 0 1px var(--edge-ring),
+    0 4px 4px #0000001a;
+}
+
+.control:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.control:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+/* One focus treatment: 4.12:1 on the dark page, 4.63:1 on the light. Colour
+   left out of the transition, so the ring is full strength on frame one. */
+.control:focus-visible {
+  outline-color: var(--accent);
+  outline-offset: 4px;
+}
+
+/* At its final offset there is nothing to animate. Covers the icon buttons,
+   which redeclare transition. */
+@media (prefers-reduced-motion: reduce) {
+  .control {
+    outline-offset: 4px;
+  }
+}
+
+/* Bright fills that brighten one step on hover. The dark ink clears 4.5:1 on
+   each, in both states. */
+.control.start {
+  background-color: #84cc16;
+}
+
+.control.start:hover:not(:disabled) {
+  background-color: #a3e635;
+}
+
+.control.pause {
+  background-color: #eab308;
+}
+
+.control.pause:hover:not(:disabled) {
+  background-color: #facc15;
+}
+
+.control.reset {
+  background-color: #0ea5e9;
+}
+
+.control.reset:hover:not(:disabled) {
+  background-color: #38bdf8;
+}
+
+/* --- Corner buttons --- */
+
+/* Three of one object: Proyectar, the theme toggle, fullscreen. Each carries
+   .control for the edge, ring and press; the corner and disc are added here.
+   The fill does not follow the theme: the bright three are timer states, and
+   chrome that inverts reads as a fourth. Light ink sits at 16.97:1.
+   The edge is restated: .control's gloss is calibrated for bright fills. */
+.projection,
+.fullscreen,
+.appearance {
+  /* Against the body: out of the flex column, cannot push the clock off
+     centre. */
+  position: absolute;
+  /* max(): a notch pushes it in, never less than the gutter. */
+  top: max(var(--gutter), env(safe-area-inset-top));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Both sides stated, padding zeroed: .control's 128px is sized to a label.
+     44px keeps the touch target. */
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 50%;
+  background-color: #18181b;
+  color: #fafafa;
+  box-shadow:
+    inset 0 0 0 1px #ffffff08,
+    inset 0 1px #ffffff0a,
+    0 0 0 1px var(--edge-ring),
+    0 4px 4px #0000001a;
+  /* Colour at 0.3s: these greys are close. The full list is repeated because
+     this shorthand replaces .control's. */
+  transition:
+    background-color 0.3s ease,
+    transform 0.2s ease-out,
+    outline-offset 0.15s ease-out;
+}
+
+/* The right is spoken for on both pages, so the theme toggle takes the left. */
+.projection,
+.fullscreen {
+  right: max(var(--gutter), env(safe-area-inset-right));
+}
+
+.appearance {
+  left: max(var(--gutter), env(safe-area-inset-left));
+}
+
+/* The only one that is a link. */
+.projection {
+  text-decoration: none;
+}
+
+.projection:hover,
+.fullscreen:hover,
+.appearance:hover {
+  background-color: #212124;
+}
+
+/* A percentage scale walks an edge by a fraction of the box: .control's 0.95
+   is 3.2px on the pill but 1.1px on a 44px disc. 0.92 keeps the travel
+   visible. Doubled so it outranks .control:active. */
+.control.projection:active,
+.control.fullscreen:active,
+.control.appearance:active {
+  transform: scale(0.92);
+}
+
+.projection .icon,
+.fullscreen .icon,
+.appearance .icon {
+  width: 24px;
+  height: 24px;
+}
+
+/* --- Projection page --- */
+
+/* 100% and dvh, not 100vw/100vh: vw counts the scrollbar gutter and vh the
+   tall toolbar, so this scrolled sideways on desktop and sat under a phone's
+   URL bar. */
+.timer-container {
+  position: relative;
+  width: 100%;
+  height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Nothing reaches it today, but the clock's width budget assumes it. */
+  padding: var(--gutter);
+  overflow: hidden;
+}
+
+.timer-container .clock {
+  position: relative;
+}
+
+/* --- Fullscreen toggle --- */
+
+/* The corner transition plus opacity: this is the one that withdraws.
+   Arriving is the fast half — it answers a gesture that already happened. */
+.fullscreen {
+  transition:
+    opacity 0.15s ease-out,
+    background-color 0.3s ease,
+    transform 0.2s ease-out,
+    outline-offset 0.15s ease-out;
+}
+
+/* Withdrawn, not removed, so it comes back without moving anything.
+   pointer-events keeps an invisible button from throwing the projection into
+   fullscreen. Leaving is the slow half: a quick disappearance at the edge of a
+   still page pulls the eye. */
+.fullscreen.idle {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease-in;
+}
+
+/* Off the document: Escape leaves fullscreen without this button hearing. */
+:root:not(:fullscreen) .fullscreen .collapse,
+:root:fullscreen .fullscreen .expand {
+  display: none;
+}
+
+/* --- Appearance toggle --- */
+
+/* Off the same attribute the palette uses, so the glyph cannot drift from the
+   theme. :not() so both land on dark before the head script runs.
+   Sequenced, not crossed: the glyphs are mirrors, and a cross-fade's midpoint
+   reads as a filled circle — neither state. */
+.appearance :is(.light, .dark) {
+  opacity: 1;
+  /* The entering glyph, delayed a full step so it starts on an empty ring. */
+  transition: opacity 140ms ease-out 140ms;
+}
+
+:root:not([data-theme="light"]) .appearance .light,
+:root[data-theme="light"] .appearance .dark {
+  opacity: 0;
+  /* The leaving glyph goes first. */
+  transition-delay: 0s;
+}
+
+/* The swap stays: that is the state. Only the crossing goes. */
+@media (prefers-reduced-motion: reduce) {
+  .appearance :is(.light, .dark) {
+    transition: none;
+  }
+}
+
+/* The pointer is chrome too: once the button has withdrawn, an arrow on the
+   wall is the one thing that is not the clock. */
+:root:fullscreen:has(.fullscreen.idle) {
+  cursor: none;
+}
+
+/* --- Entrance --- */
+
+/* One gesture on load: page fades, clock rises, corners follow. Only elements
+   no broadcast replaces — on #timer_clock or #timer_controls it would replay
+   on every start, pause and reset. */
+@keyframes arrive {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes rise {
+  from {
+    transform: translate(0, 12px);
+  }
+}
+
+.dashboard-page {
+  /* Opacity only: a transform would become the containing block for the
+     corner buttons, which measure from the body. */
+  animation: arrive 0.3s ease-out;
+}
+
+/* The clock moves but does not fade on its own: the page already does, and a
+   second fade over the same moment holds it back. */
+.editable-clock {
+  /* Stated, like .error's, so the two interpolate directly. Also why .error
+     renders outside this element: a transform contains absolute descendants. */
+  transform: translate(0, 0);
+  animation: rise 0.4s ease-out;
+}
+
+/* The projection has no wrapper between page and clock, so one element takes
+   both halves. */
+.timer-container {
+  transform: translate(0, 0);
+  animation:
+    arrive 0.3s ease-out,
+    rise 0.4s ease-out;
+}
+
+/* Chrome last, so the corner settles after the clock. backwards spends the
+   wait invisible. */
+.control.projection,
+.control.appearance,
+.control.fullscreen {
+  animation: arrive 0.3s ease-out 0.15s backwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-page,
+  .editable-clock,
+  .timer-container,
+  .control.projection,
+  .control.appearance,
+  .control.fullscreen {
+    animation: none;
+  }
+}
+
+/* One declaration moves the page padding, the corner buttons and the clock,
+   which all budget against this. */
+@media (width < 30rem) {
+  :root {
+    --gutter: 16px;
+  }
+}

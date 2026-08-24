@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# Runs the checks CI cannot: node is deliberately not a CI dependency, so the
+# clock's JavaScript is checked here instead.
+#
+# Enabled by bin/setup, or by hand:
+#   git config core.hooksPath .githooks
+#
+# A seatbelt, not a wall: --no-verify skips it, and it reads the working tree
+# rather than what is staged.
+set -e
+
+OXLINT=1.79.0
+
+if ! command -v node >/dev/null; then
+  echo "pre-commit: no node, so the JavaScript is going in unchecked." >&2
+  exit 0
+fi
+
+# Pinned, not @latest: a linter that follows the newest release will one day stop
+# a commit over a rule that shipped that morning. Bump it on purpose, like a gem.
+echo "pre-commit: oxlint $OXLINT"
+npx --yes "oxlint@$OXLINT" app/javascript test/javascript
+
+echo "pre-commit: the clock's JavaScript"
+for harness in test/javascript/*_test.mjs; do
+  node "$harness" >/dev/null
+done

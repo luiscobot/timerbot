@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <title><%= content_for(:title) || "Timerbot" %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <%# Kept after the PWA files were deleted: opens a home-screen timer
+        without Safari's bars. %>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+
+    <%# Inline and ahead of the stylesheet: the theme must be on the document
+        before first paint. A stored choice wins; else the OS. With JS off,
+        :root's dark stands. Key shared with appearance_controller.js. %>
+    <%= javascript_tag nonce: true do %>
+      {
+        let stored = null;
+        // Private mode can refuse storage; the OS default survives.
+        try { stored = localStorage.getItem("appearance"); } catch { /* off */ }
+        const light = stored ? stored === "light" : matchMedia("(prefers-color-scheme: light)").matches;
+        document.documentElement.dataset.theme = light ? "light" : "dark";
+      }
+    <% end %>
+
+    <%= yield :head %>
+
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <%# iOS takes no SVG on the home screen and paints transparency black, so
+        the PNG carries its own background. %>
+    <link rel="apple-touch-icon" href="/icon.png">
+
+    <%# Self-hosted: Google Fonts' build lacks the cv01 numerals. %>
+    <link rel="preload" href="<%= asset_path("InterVariable.woff2") %>" as="font" type="font/woff2" crossorigin>
+
+    <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+  </head>
+
+  <body>
+    <%= yield %>
+  </body>
+</html>

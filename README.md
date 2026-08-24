@@ -1,48 +1,59 @@
-# Astro Starter Kit: Basics
+# Timerbot
+
+A countdown timer you can share. Set a duration, send someone the link, and you
+are both looking at the same clock — start it on your laptop and it starts on
+their screen too.
+
+Every timer is a server-side record with two independently generated slugs:
+
+- `/t/:slug` — the dashboard. Whoever has this link can start, pause, reset and
+  edit the duration.
+- `/p/:slug` — the projection. Watch only, and built to be put on a screen a
+  room is looking at. It never receives the control slug, over HTTP or over the
+  websocket, so the dashboard link cannot be guessed from it.
+
+State changes broadcast to every connected client over Turbo Streams, and each
+client ticks locally against a server-provided deadline, so the model stays
+authoritative without a request per second.
+
+The entry page is an editable clock with no record behind it. Creating is folded
+into the first action that needs one — Iniciar or Proyectar — so there is no step
+whose only job is to create. `/5m`, `/45s` and `/5m30s` open that page preset, in
+either case.
+
+Interface copy is Spanish.
+
+## Running it
 
 ```sh
-npm create astro@latest -- --template basics
+bin/setup          # dependencies, database, git hooks
+bin/rails server   # http://localhost:3000
 ```
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/withastro/astro/tree/latest/examples/basics)
-[![Open with CodeSandbox](https://assets.codesandbox.io/github/button-edit-lime.svg)](https://codesandbox.io/p/sandbox/github/withastro/astro/tree/latest/examples/basics)
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/withastro/astro?devcontainer_path=.devcontainer/basics/devcontainer.json)
+## Checks
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
-
-![just-the-basics](https://github.com/withastro/astro/assets/2244813/a0a5533c-a856-4198-8470-2d67b1d7c554)
-
-## 🚀 Project Structure
-
-Inside of your Astro project, you'll see the following folders and files:
-
-```text
-/
-├── public/
-│   └── favicon.svg
-├── src/
-│   ├── layouts/
-│   │   └── Layout.astro
-│   └── pages/
-│       └── index.astro
-└── package.json
+```sh
+bin/rails test     # the suite, JavaScript included where node is available
+bin/rubocop        # Ruby style (rails-omakase)
+bin/ci             # everything CI runs: rubocop, three security audits, tests
 ```
 
-To learn more about the folder structure of an Astro project, refer to [our guide on project structure](https://docs.astro.build/en/basics/project-structure/).
+`bin/ci` deliberately does not depend on node. The clock's JavaScript is covered
+two other ways: `bin/rails test` shells out to `test/javascript/*_test.mjs`
+wherever node exists, and `.githooks/pre-commit` runs those plus oxlint before a
+commit lands. Where node is missing, that one test skips and says so — so a green
+CI is not a claim that the JavaScript was checked. It is safe anyway: every rule
+the JavaScript enforces is enforced again server-side.
 
-## 🧞 Commands
+## Housekeeping
 
-All commands are run from the root of the project, from a terminal:
+`SweepTimersJob` deletes anything untouched for `Timer::RETENTION` (30 days),
+daily. Transitions and duration edits move `updated_at`; rendering a page does
+not, so a timer someone still uses keeps itself alive. It runs only where a Solid
+Queue worker does — the container starts the web server alone, so the Dockerfile
+sets `SOLID_QUEUE_IN_PUMA=true`.
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
+## Stack
 
-## 👀 Want to learn more?
-
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+Rails 8, SQLite, Hotwire (Turbo + Stimulus) over importmap with no build step,
+Solid Queue/Cache/Cable. Deployed as a container; see `Dockerfile`.

@@ -1,0 +1,5 @@
+# Production only: in development it would sweep whatever you are working on.
+production:
+  sweep_timers:
+    class: SweepTimersJob
+    schedule: every day at 4am

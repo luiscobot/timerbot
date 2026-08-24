@@ -1,0 +1,15 @@
+<%# Both glyphs ship in one icon; CSS shows whichever matches data-theme. The
+    dark label matches what the document says before the head script runs; the
+    controller corrects it on connect. %>
+<button type="button"
+        class="control appearance"
+        data-controller="appearance"
+        data-action="click->appearance#toggle keydown@window->appearance#shortcut"
+        aria-label="Cambiar a modo claro"
+        title="Cambiar a modo claro">
+  <svg class="icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" />
+    <path class="light" fill="currentColor" d="M12 8a4 4 0 0 1 0 8v5a9 9 0 1 0 0-18zm0 0a4 4 0 1 0 0 8z" />
+    <path class="dark" fill="currentColor" d="M12 8a4 4 0 1 0 0 8v5a9 9 0 1 1 0-18zm0 0a4 4 0 0 1 0 8z" />
+  </svg>
+</button>

@@ -1,24 +1,39 @@
-# build output
-dist/
+# See https://help.github.com/articles/ignoring-files for more about ignoring files.
 
-# generated types
-.astro/
+# Ignore bundler config.
+/.bundle
 
-# dependencies
-node_modules/
+# Ignore all environment files.
+/.env*
+!/.env.example
 
-# logs
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
+# Ignore all logfiles and tempfiles.
+/log/*
+/tmp/*
+!/log/.keep
+!/tmp/.keep
 
-# environment variables
-.env
-.env.production
+# Ignore pidfiles, but keep the directory.
+/tmp/pids/*
+!/tmp/pids/
+!/tmp/pids/.keep
 
-# macOS-specific files
+# Ignore storage (uploaded files in development and any SQLite databases).
+/storage/*
+!/storage/.keep
+/tmp/storage/*
+!/tmp/storage/
+!/tmp/storage/.keep
+
+# Ignore the default SQLite databases.
+/db/*.sqlite3
+/db/*.sqlite3-*
+
+# Ignore the master key used to decrypt credentials.
+/config/master.key
+
+# Ignore Ruby LSP internal files.
+/.ruby-lsp/
+
+# macOS-specific files.
 .DS_Store
-
-# jetbrains setting folder
-.idea/

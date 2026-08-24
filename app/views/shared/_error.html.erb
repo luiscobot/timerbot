@@ -1,0 +1,4 @@
+<%# The server fills this on a refusal; the duration controller writes its own
+    text before unhiding. An alert announces what it holds as it appears. %>
+<%= tag.p flash[:alert], class: "error", role: "alert",
+          hidden: flash[:alert].blank?, data: { duration_target: "error" } %>

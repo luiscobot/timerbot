@@ -1,0 +1,44 @@
+<% minutes, seconds = timer_digits(@timer.duration) %>
+
+<main class="dashboard-page"
+      data-controller="shortcuts duration"
+      data-duration-max-value="<%= Timer::MAX_DURATION %>"
+      data-action="submit->duration#submit keydown@window->shortcuts#handle">
+  <%# One form, two ways out. Iniciar submits with start; the create controller
+      takes over Proyectar, which points two tabs. With JavaScript off it posts
+      normally and lands on the dashboard. %>
+  <%= form_with url: timers_path, class: "dashboard",
+                data: { controller: "create" } do |form| %>
+    <div class="editable-clock">
+      <%# Carries the value in the POST; the duration controller keeps it in
+          step with the digits. %>
+      <%= form.hidden_field :duration, value: @timer.duration,
+                            data: { duration_target: "field",
+                                    create_target: "duration" } %>
+
+      <div class="clock">
+        <%= render "timers/units", minutes: minutes, seconds: seconds %>
+      </div>
+    </div>
+
+    <%# No Reiniciar: nothing yet to put back. %>
+    <div class="controls">
+      <%= form.submit "Iniciar", name: "start",
+                      class: "control start", title: "Iniciar (Espacio)" %>
+    </div>
+
+    <%# Outside .editable-clock: absolute against the body, like the
+        dashboard's. %>
+    <button type="submit" class="control projection"
+            data-action="click->create#project"
+            aria-label="Proyectar" title="Proyectar (P)">
+      <%= render "shared/project_icon" %>
+    </button>
+  <% end %>
+
+  <%# Outside .editable-clock, whose transform would become its containing
+      block: the message anchors to the body, like the corner buttons. %>
+  <%= render "shared/error" %>
+
+  <%= render "shared/appearance" %>
+</main>

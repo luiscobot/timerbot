@@ -1,0 +1,33 @@
+<%= turbo_stream_from @timer %>
+<%= turbo_stream_from @timer, :control %>
+
+<%# On the page, which no broadcast replaces, and high enough to catch
+    Iniciar's submit: a clock at zero must not start. %>
+<main class="dashboard-page"
+      data-controller="shortcuts duration"
+      data-duration-max-value="<%= Timer::MAX_DURATION %>"
+      data-duration-url-value="<%= timer_path(@timer) %>"
+      data-action="submit->duration#submit keydown@window->shortcuts#handle">
+  <div class="dashboard">
+    <%# Carries the entrance rise; broadcasts replace only the clock inside. %>
+    <div class="editable-clock">
+      <%= render "timers/clock", timer: @timer %>
+    </div>
+
+    <%= render "timers/controls", timer: @timer %>
+  </div>
+
+  <%# Outside .editable-clock, whose transform would become its containing
+      block: the message anchors to the body, like the corner buttons. %>
+  <%= render "shared/error" %>
+
+  <%= render "shared/appearance" %>
+
+  <%# The word is dropped by design; the name is not — a link whose only
+      content is a decorative <svg> is announced as its own URL. %>
+  <%= link_to projection_path(@timer.projection_slug), class: "control projection",
+              target: "_blank", rel: "noopener noreferrer",
+              aria: { label: "Proyectar" }, title: "Proyectar (P)" do %>
+    <%= render "shared/project_icon" %>
+  <% end %>
+</main>

@@ -1,0 +1,13 @@
+<% remaining = timer.remaining %>
+<% minutes, seconds = timer_digits(remaining) %>
+<%# The duration target rides on the clock so the dashboard's editor gets the
+    status with every broadcast. Inert on the projection. %>
+<div id="timer_clock"
+     class="clock"
+     data-controller="timer"
+     data-duration-target="clock"
+     data-timer-status-value="<%= timer.status %>"
+     data-timer-remaining-ms-value="<%= (remaining * 1000).round %>"
+     data-timer-complete-url-value="<%= projection_completion_path(timer.projection_slug) %>">
+  <%= render "timers/units", minutes: minutes, seconds: seconds %>
+</div>

@@ -1,0 +1,8 @@
+# See https://www.robotstxt.org/robotstxt.html for documentation on how to use the robots.txt file
+
+# Nothing writes on GET, so crawling is harmless — but a timer's page is
+# private to whoever holds the link, and the shorthand is just the entry page
+# with a number on it. Only the entry page is worth having indexed.
+User-agent: *
+Allow: /$
+Disallow: /
