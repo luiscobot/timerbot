@@ -77,6 +77,9 @@ it, and creating is folded into the first action that needs one — Iniciar or
 Proyectar — so there is no step whose only job is to create. Both `show` actions
 do write, but only to fold back a timer that ran out unwatched.
 
+- `www.` anything - redirected to the bare host, path and query kept. First in
+  `routes.rb`, so nothing else answers on it, and straight to https because
+  `force_ssl` would only bounce it again
 - `root "timers#new"` - the clock before there is anything to save
 - `/5m30s`, `/10m`, `/45s` - the same, preset, in either case, so `/10M` is the
   page `/10m` is. Root only: everything after `/t` is a slug, so `/t/5m30s` is a
@@ -219,6 +222,26 @@ is folded in lazily, so one started with nobody watching stays running forever.
 The schedule only runs where a Solid Queue worker does. The container starts the
 web server alone, so the Dockerfile sets `SOLID_QUEUE_IN_PUMA=true` for the Puma
 plugin in `config/puma.rb` to pick it up.
+
+### Deployment
+
+Kamal, to one Hetzner box (`178.105.93.243`) that already runs another app
+behind the same `kamal-proxy`; it routes by host, so the two do not meet.
+`config/deploy.yml` holds it. `kamal deploy` builds and ships, `kamal app logs
+-f` follows, `kamal console` opens a Rails console there.
+
+- The registry is `localhost:5555`: Kamal runs it on the deploying machine and
+  forwards the port over SSH, so the image never passes through an account
+  anywhere. Nothing to log into, and nothing to leak
+- The server is x86_64, so `builder.arch` is `amd64` and a build on an ARM
+  machine is emulated. The first is slow; the layer cache carries the rest
+- `storage/` is a named volume, because a deploy replaces the container and the
+  four SQLite databases are in there. It is the only state on the box
+- kamal-proxy holds the certificate and terminates TLS, which is why
+  production.rb sets `assume_ssl`. `timerbot.co` must therefore resolve
+  straight to the server: behind a CDN's proxy the Let's Encrypt challenge
+  never arrives, and `request.remote_ip` becomes the CDN's, which would put
+  every visitor in one `CREATION_LIMIT` bucket
 
 ### What CI covers
 

@@ -43,3 +43,6 @@
 # Ignore Docker-related files
 /.dockerignore
 /Dockerfile*
+
+# Ignore Kamal files.
+/.kamal

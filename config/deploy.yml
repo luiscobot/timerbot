@@ -1,0 +1,46 @@
+# Deployed with Kamal: `kamal setup` the first time, `kamal deploy` after.
+service: timerbot
+image: timerbot
+
+servers:
+  web:
+    - 178.105.93.243
+
+# kamal-proxy terminates TLS with a Let's Encrypt certificate it renews itself,
+# and forwards to Thruster on port 80 inside the container. The app trusts that
+# hop: production.rb sets assume_ssl, so force_ssl reads the proxy's header
+# rather than the scheme it was handed.
+#
+# www is listed so the proxy routes it and holds a certificate for it. It is
+# not a second name for the app: routes.rb redirects it to the bare host.
+proxy:
+  ssl: true
+  hosts:
+    - timerbot.co
+    - www.timerbot.co
+
+# Kamal runs this registry on this machine and forwards the port over SSH while
+# it deploys, so the image goes straight to the server and there is no registry
+# account to hold it.
+registry:
+  server: localhost:5555
+
+builder:
+  arch: amd64
+
+env:
+  secret:
+    - RAILS_MASTER_KEY
+
+# Every deploy replaces the container, so storage/ is the one thing that cannot
+# live inside it: the four SQLite databases are there.
+volumes:
+  - "timerbot_storage:/rails/storage"
+
+# Served from the old container while the new one takes over, so a page loaded
+# a moment before a deploy still finds its digest-stamped assets.
+asset_path: /rails/public/assets
+
+aliases:
+  console: app exec --interactive --reuse "bin/rails console"
+  logs: app logs -f

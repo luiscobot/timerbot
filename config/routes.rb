@@ -1,4 +1,13 @@
 Rails.application.routes.draw do
+  # www is a way of spelling this app's host, not a second name for it. First,
+  # so it answers before any real route can, and straight to https, which
+  # force_ssl would bounce it to anyway.
+  constraints host: /\Awww\./i do
+    match "(*path)", via: :all, to: redirect { |_, request|
+      "https://#{request.host.sub(/\Awww\./i, "")}#{request.fullpath}"
+    }
+  end
+
   root "timers#new"
 
   # Control. Everything after /t is a slug, so /t/5m30s is a 404, not a

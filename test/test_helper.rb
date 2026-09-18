@@ -15,3 +15,12 @@ module ActiveSupport
     setup { Rails.cache.clear }
   end
 end
+
+module ActionDispatch
+  class IntegrationTest
+    # Rails comes from www.example.com, which routes.rb redirects. These tests
+    # are about what the app serves, so they ask for it by its bare host; the
+    # redirect is tested where it belongs.
+    setup { host! "example.com" }
+  end
+end
