@@ -801,4 +801,23 @@ button {
   :root {
     --gutter: 16px;
   }
+
+  /* Iniciar and the pill do not fit a phone at the wide chrome, and .controls
+     wraps rather than scroll, which put the pill under the button. What gives
+     is the chrome: the fixed widths inside the pill stay, because they are
+     what keeps an hour from walking Iniciar sideways. */
+  .controls {
+    gap: 8px;
+  }
+
+  .control.deadline {
+    padding: 0 12px;
+  }
+
+  /* Only the row that carries the pill. Its button is the entry page's, which
+     never cycles, so the width that keeps Iniciar, Pausar and Reanudar from
+     shifting the row buys nothing here — and the pill needs those pixels. */
+  .controls:has(.deadline) .control.start {
+    width: 108px;
+  }
 }
