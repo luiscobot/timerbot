@@ -6,7 +6,12 @@ import { bare } from "shortcut";
 export default class extends Controller {
   // Long enough to cross a large screen; short enough that a knocked desk does
   // not leave chrome on the wall.
-  static values = { idleAfter: { type: Number, default: 2500 } };
+  // The two labels are the page's language; the button ships the first.
+  static values = {
+    idleAfter: { type: Number, default: 2500 },
+    enterLabel: String,
+    exitLabel: String,
+  };
 
   connect() {
     // iOS Safari grants fullscreen to <video> only; a button that cannot do
@@ -62,7 +67,7 @@ export default class extends Controller {
   // The glyph swaps in CSS; the name and tooltip cannot. Driven by the event,
   // so leaving with Escape still lands.
   syncLabel() {
-    const label = document.fullscreenElement ? "Salir de pantalla completa" : "Pantalla completa";
+    const label = document.fullscreenElement ? this.exitLabelValue : this.enterLabelValue;
 
     this.element.setAttribute("aria-label", label);
     this.element.title = `${label} (F)`;

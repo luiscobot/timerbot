@@ -1,5 +1,7 @@
-<%= turbo_stream_from @timer %>
-<%= turbo_stream_from @timer, :control %>
+<%# The streams of this page's language: the words on the clock and the
+    buttons are rendered on the way out, once per language. %>
+<%= turbo_stream_from @timer, I18n.locale %>
+<%= turbo_stream_from @timer, :control, I18n.locale %>
 
 <%# On the page, which no broadcast replaces, and high enough to catch
     Iniciar's submit: a zero someone typed must not start. The zero a countdown
@@ -7,6 +9,7 @@
 <main class="dashboard-page"
       data-controller="shortcuts duration"
       data-duration-max-value="<%= Timer::MAX_DURATION %>"
+      data-duration-message-value="<%= t("refusals.zero") %>"
       data-duration-url-value="<%= timer_path(@timer) %>"
       data-action="submit->duration#submit keydown@window->shortcuts#handle">
   <div class="dashboard">
@@ -28,7 +31,7 @@
       content is a decorative <svg> is announced as its own URL. %>
   <%= link_to watch_path(@timer.watch_slug), class: "control watch",
               target: "_blank", rel: "noopener noreferrer",
-              aria: { label: "Proyectar" }, title: "Proyectar (P)" do %>
+              aria: { label: t("controls.watch") }, title: "#{t("controls.watch")} (P)" do %>
     <%= render "shared/watch_icon" %>
   <% end %>
 </main>

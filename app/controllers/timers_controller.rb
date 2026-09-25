@@ -26,7 +26,7 @@ class TimersController < ApplicationController
       end
     end
   rescue Timer::UnreachableDeadline => error
-    refuse(error.message, :unprocessable_entity)
+    refuse(t("refusals.#{error.reason}"), :unprocessable_entity)
   rescue ArgumentError
     # iso8601 on an instant nothing can read: only a hand-crafted POST gets here.
     head :bad_request
@@ -73,7 +73,7 @@ class TimersController < ApplicationController
 
     # rate_limit hands its handler no arguments.
     def too_many_timers
-      refuse("Espera un momento.", :too_many_requests)
+      refuse(t("refusals.wait"), :too_many_requests)
     end
 
     # The route constraint guarantees the shape, so parse_duration only comes

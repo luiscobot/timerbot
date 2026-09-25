@@ -20,5 +20,11 @@ module TimerbotRails
     config.load_defaults 8.1
 
     config.autoload_lib(ignore: %w[assets tasks])
+
+    # Spanish unless the browser asks for English. The streams loop over this
+    # list and the header is matched against it, so it is the one place a
+    # language is added.
+    config.i18n.default_locale = :es
+    config.i18n.available_locales = %i[es en]
   end
 end

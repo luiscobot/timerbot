@@ -8,6 +8,9 @@ const KEY = "appearance";
 // glyph both read it. This flips it, stores the flip, and keeps the label
 // naming the next click.
 export default class extends Controller {
+  // Both in the page's language; the partial ships the same words.
+  static values = { lightLabel: String, darkLabel: String };
+
   connect() {
     // By hand: an action cannot listen to a media query.
     this.system = window.matchMedia("(prefers-color-scheme: light)");
@@ -72,7 +75,7 @@ export default class extends Controller {
 
   // Names the action, not the state: the glyph already shows where you are.
   syncLabel() {
-    const label = this.theme === "dark" ? "Cambiar a modo claro" : "Cambiar a modo oscuro";
+    const label = this.theme === "dark" ? this.lightLabelValue : this.darkLabelValue;
 
     // Title only: a screen reader saying "(T)" is noise.
     this.element.setAttribute("aria-label", label);

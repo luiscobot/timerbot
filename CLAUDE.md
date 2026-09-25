@@ -119,6 +119,13 @@ model stays authoritative. The controls are plain `button_to` forms — Turbo
 submits them and the `204` tells it not to navigate. The only fetches are
 Proyectar's create, the duration PATCH and the completion POST.
 
+Every broadcast goes out once per language. Both broadcast partials carry words
+— the clock's unit labels and the buttons — and they render with no request to
+say whose, so `Timer#in_each_locale` renders them under each locale in turn and
+each page subscribes to the streams of the language it was served in:
+`[timer, locale]` for the clock and `[timer, :control, locale]` for the
+controls. Nothing listens on a bare stream any more.
+
 ### Conventions
 
 - A running timer always has a `started_at`, because `remaining` subtracts
@@ -164,8 +171,9 @@ Proyectar's create, the duration PATCH and the completion POST.
   to `duration_controller.js` as `data-duration-max-value`, so the model is the
   one definition of the ceiling.
 - The clock partial is shared by the dashboard and the watch page, and one
-  broadcast feeds both, so it can carry nothing control-only. Editing is layered
-  on by an ancestor controller that only the dashboard renders.
+  broadcast per language feeds both, so it can carry nothing control-only.
+  Editing is layered on by an ancestor controller that only the dashboard
+  renders.
 - That editor takes the status off the clock's `duration` target, and all three
   of its `*TargetConnected` callbacks settle the offer, because a broadcast can
   connect the clock either side of the units inside it. No clock target at all is
@@ -210,6 +218,39 @@ Proyectar's create, the duration PATCH and the completion POST.
   ink and still swaps. The response carries no policy — its `<style>` is those
   colors and can hold no nonce, being cached — and the home-screen PNG has no
   variant, because nobody installs a dev server.
+
+### Localization
+
+Spanish or English, whichever the browser asks for; Spanish when it asks for
+neither. There is no override — no cookie, no URL prefix, no toggle — so the
+routes, the JSON Proyectar reads and the slugs know nothing of it.
+
+- `ApplicationController` reads `Accept-Language` in an `around_action` and
+  wraps every action in `I18n.with_locale`. Declared in the parent, it wraps
+  the rate limit's refusal too, so the 429 and 422 pages answer in the same
+  language as the page they re-render. The parse honours `q` (position is not
+  order), takes a region as its language, and rules a language out at `q=0`
+- `config.i18n.available_locales` is the one list: the header is matched
+  against it and the broadcasts loop over it, so adding a language is that
+  line and a locale file
+- `config/locales/es.yml` and `en.yml` hold one vocabulary for every page —
+  `controls.*`, `units.*`, `refusals.*`, `space` — not per-view keys, because
+  a control is one word wherever it appears. Letter keys (R, P, H, T, F) are
+  not words and are not translated; "Espacio" is, hence `space`.
+  `test/locales_test.rb` holds the two files to the same key set, because
+  production's `i18n.fallbacks` would otherwise render Spanish for a key
+  English lacks, silently
+- Every word the JavaScript writes arrives as a Stimulus value rendered from
+  the same key the partial uses: the three refusals on `duration`, the two
+  labels on `appearance` and on `fullscreen`. The zero refusal is not optional
+  — the client stands down on an empty message — so the controller tests
+  assert it on both pages
+- `Timer::UnreachableDeadline` carries a reason (`:deadline_passed`,
+  `:deadline_beyond`) that is the key under `refusals`; the controller says
+  the sentence. The model never holds words
+- The hour pill's "6:15 p.m." is not translated: it reads the same in English,
+  and `.deadline select` is sized to that format
+- `public/*.html` are Rails' stock English error pages and stay so
 
 ### Housekeeping
 
@@ -265,4 +306,5 @@ half is fully covered.
   is keyed by address and every test comes from the same one
 - JavaScript via importmap (no Node build step); `oxlint` for JS
 - SQLite for development/test
-- Spanish language labels ("minutos", "segundos")
+- Interface copy in Spanish and English, under `config/locales`; see
+  Localization

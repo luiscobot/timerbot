@@ -112,7 +112,7 @@ class TimersControllerTest < ActionDispatch::IntegrationTest
     end
 
     assert_response :unprocessable_entity
-    assert_select ".error:not([hidden])", text: Timer::DEADLINE_PASSED
+    assert_select ".error:not([hidden])", text: I18n.t("refusals.deadline_passed")
     assert_select "input[type=hidden][name=deadline][value=?]", passed
     assert_select "input[type=hidden][name=duration][value=?]", "125"
     assert_select "input[type=submit][name=start]"
@@ -124,7 +124,7 @@ class TimersControllerTest < ActionDispatch::IntegrationTest
     end
 
     assert_response :unprocessable_entity
-    assert_select ".error:not([hidden])", text: Timer::DEADLINE_BEYOND
+    assert_select ".error:not([hidden])", text: I18n.t("refusals.deadline_beyond")
   end
 
   # There is no JSON entry page, so the refusal has to name the format it
@@ -134,7 +134,7 @@ class TimersControllerTest < ActionDispatch::IntegrationTest
                       as: :json
 
     assert_response :unprocessable_entity
-    assert_select ".error:not([hidden])", text: Timer::DEADLINE_PASSED
+    assert_select ".error:not([hidden])", text: I18n.t("refusals.deadline_passed")
   end
 
   # The door a non-scalar duration meets: only a hand-crafted POST gets here.
@@ -189,12 +189,43 @@ class TimersControllerTest < ActionDispatch::IntegrationTest
     assert_select ".control.watch[data-action*=?]", "duration#check"
   end
 
-  # Both halves of the check say the same thing, from the one definition.
+  # Both halves of the check say the same thing, from the one definition. The
+  # zero one is not optional: the client stands down on an empty refusal, so a
+  # page that forgot it would let a zero start.
   test "the root hands the client the refusals it may have to say" do
     get root_path
 
-    assert_select "main[data-duration-passed-message-value=?]", Timer::DEADLINE_PASSED
-    assert_select "main[data-duration-beyond-message-value=?]", Timer::DEADLINE_BEYOND
+    assert_select "main[data-duration-message-value=?]", I18n.t("refusals.zero")
+    assert_select "main[data-duration-passed-message-value=?]", I18n.t("refusals.deadline_passed")
+    assert_select "main[data-duration-beyond-message-value=?]", I18n.t("refusals.deadline_beyond")
+  end
+
+  test "the dashboard hands the client the zero refusal" do
+    get timer_path(timers(:one))
+
+    assert_select "main[data-duration-message-value=?]", I18n.t("refusals.zero")
+  end
+
+  # The words on the clock and the buttons are broadcast once per language, so
+  # the page must listen on the streams of its own.
+  test "the dashboard subscribes to the streams of its language" do
+    timer = timers(:one)
+
+    get timer_path(timer)
+
+    assert_select "turbo-cable-stream-source", count: 2
+    assert_select "turbo-cable-stream-source[signed-stream-name=?]",
+                  Turbo::StreamsChannel.signed_stream_name([ timer, :es ])
+    assert_select "turbo-cable-stream-source[signed-stream-name=?]",
+                  Turbo::StreamsChannel.signed_stream_name([ timer, :control, :es ])
+
+    get timer_path(timer), headers: { "Accept-Language" => "en" }
+
+    assert_select "turbo-cable-stream-source", count: 2
+    assert_select "turbo-cable-stream-source[signed-stream-name=?]",
+                  Turbo::StreamsChannel.signed_stream_name([ timer, :en ])
+    assert_select "turbo-cable-stream-source[signed-stream-name=?]",
+                  Turbo::StreamsChannel.signed_stream_name([ timer, :control, :en ])
   end
 
   test "creating is limited per address" do

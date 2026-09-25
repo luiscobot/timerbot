@@ -1,0 +1,25 @@
+# One vocabulary for every page: a control is one word wherever it appears,
+# and the JavaScript that writes a word is handed it from here as a Stimulus
+# value. The letters after a label (R, P, H, T, F) are keys, not words, and
+# are not here.
+es:
+  controls:
+    start: Iniciar
+    pause: Pausar
+    resume: Reanudar
+    reset: Reiniciar
+    watch: Proyectar
+    deadline: Hasta las
+    fullscreen: Pantalla completa
+    exit_fullscreen: Salir de pantalla completa
+    light_mode: Cambiar a modo claro
+    dark_mode: Cambiar a modo oscuro
+  space: Espacio
+  units:
+    minutes: minutos
+    seconds: segundos
+  refusals:
+    wait: Espera un momento.
+    zero: Ponle al menos un segundo.
+    deadline_passed: Esa hora ya pasó.
+    deadline_beyond: Máximo una hora.

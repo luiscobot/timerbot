@@ -28,7 +28,8 @@ offered, because a timer cannot run longer than an hour, so there is no hour to
 pick and then be refused. A timer aimed at an hour is created already running:
 what fixes it is the hour, not the moment you press the button.
 
-Interface copy is Spanish.
+Interface copy is Spanish or English, whichever the browser asks for; Spanish
+when it asks for neither.
 
 ## Running it
 

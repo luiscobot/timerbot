@@ -16,12 +16,14 @@ const STEP = 15;
 // the dashboard has neither.
 export default class extends Controller {
   static targets = ["clock", "minutes", "seconds", "field", "error", "time", "deadline"];
-  // Only the dashboard sets url. max is Timer::MAX_DURATION and the two hour
-  // messages live beside it, so the model is the one definition of all three.
+  // Only the dashboard sets url. max is Timer::MAX_DURATION, so the model is
+  // the one definition of the ceiling; the three messages come from the
+  // locale file, in the page's language. Nothing is said here, so a page that
+  // forgets one has no refusal to show — the controller tests hold them.
   static values = {
     url: String,
     max: Number,
-    message: { type: String, default: "Ponle al menos un segundo." },
+    message: String,
     passedMessage: String,
     beyondMessage: String,
   };
@@ -454,7 +456,7 @@ function hourOption(at) {
   return option;
 }
 
-// "6:15 p.m.", the way the hour is said here.
+// "6:15 p.m.", the way the hour is said here, and it reads in English too.
 function wallLabel(at) {
   const hours = at.getHours();
 

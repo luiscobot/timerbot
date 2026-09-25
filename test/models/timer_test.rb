@@ -181,8 +181,8 @@ class TimerTest < ActiveSupport::TestCase
   test "change_duration broadcasts the clock and leaves the controls alone" do
     timer = timers(:one)
 
-    clock = capture_turbo_stream_broadcasts timer do
-      controls = capture_turbo_stream_broadcasts [ timer, :control ] do
+    clock = capture_turbo_stream_broadcasts [ timer, :es ] do
+      controls = capture_turbo_stream_broadcasts [ timer, :control, :es ] do
         timer.change_duration(90)
       end
 
@@ -196,11 +196,55 @@ class TimerTest < ActiveSupport::TestCase
   test "a transition broadcasts the controls as well" do
     timer = timers(:one)
 
-    assert_turbo_stream_broadcasts timer, count: 1 do
-      assert_turbo_stream_broadcasts [ timer, :control ], count: 1 do
+    assert_turbo_stream_broadcasts [ timer, :es ], count: 1 do
+      assert_turbo_stream_broadcasts [ timer, :control, :es ], count: 1 do
         timer.start
       end
     end
+  end
+
+  # Each page listens on the streams of the language it was served in, and
+  # nothing listens on a bare one any more.
+  test "a broadcast goes out once per language, each in its own words" do
+    timer = timers(:one)
+
+    english = capture_turbo_stream_broadcasts [ timer, :control, :en ] do
+      spanish = capture_turbo_stream_broadcasts [ timer, :control, :es ] do
+        timer.start
+      end
+
+      assert_equal 1, spanish.count
+      assert_includes spanish.first.to_s, "Pausar"
+    end
+
+    assert_equal 1, english.count
+    assert_includes english.first.to_s, "Pause"
+    assert_no_turbo_stream_broadcasts timer
+    assert_no_turbo_stream_broadcasts [ timer, :control ]
+  end
+
+  test "the clock's labels are broadcast in each language" do
+    timer = timers(:one)
+
+    english = capture_turbo_stream_broadcasts [ timer, :en ] do
+      spanish = capture_turbo_stream_broadcasts [ timer, :es ] do
+        timer.change_duration(90)
+      end
+
+      assert_includes spanish.first.to_s, "minutos"
+    end
+
+    assert_includes english.first.to_s, "minutes"
+    assert_includes english.first.to_s, "seconds"
+  end
+
+  # The words are the controller's to say; the model only says why.
+  test "running_until names the reason an hour is refused" do
+    passed = assert_raises(Timer::UnreachableDeadline) { Timer.running_until(1.minute.ago) }
+    beyond = assert_raises(Timer::UnreachableDeadline) { Timer.running_until(90.minutes.from_now) }
+
+    assert_equal :deadline_passed, passed.reason
+    assert_equal :deadline_beyond, beyond.reason
   end
 
   # normalizes would fold a non-positive duration into the default, leaving the

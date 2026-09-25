@@ -11,6 +11,29 @@ class WatchesControllerTest < ActionDispatch::IntegrationTest
     assert_select "#timer_controls", count: 0
   end
 
+  test "it subscribes to the clock stream of its language" do
+    timer = timers(:one)
+
+    get watch_path(timer.watch_slug)
+
+    assert_select "html[lang=es]"
+    assert_select "turbo-cable-stream-source", count: 1
+    assert_select "turbo-cable-stream-source[signed-stream-name=?]",
+                  Turbo::StreamsChannel.signed_stream_name([ timer, :es ])
+    assert_select ".minutes .label", "minutos"
+
+    get watch_path(timer.watch_slug), headers: { "Accept-Language" => "en" }
+
+    assert_select "html[lang=en]"
+    assert_select "turbo-cable-stream-source", count: 1
+    assert_select "turbo-cable-stream-source[signed-stream-name=?]",
+                  Turbo::StreamsChannel.signed_stream_name([ timer, :en ])
+    assert_select ".minutes .label", "minutes"
+    assert_select ".seconds .label", "seconds"
+    assert_select ".control.fullscreen[aria-label=?]", "Full screen"
+    assert_select ".control.fullscreen[data-fullscreen-exit-label-value=?]", "Exit full screen"
+  end
+
   # The point of the second slug: this page hangs on a wall.
   test "the page never exposes the control slug" do
     timer = timers(:one)

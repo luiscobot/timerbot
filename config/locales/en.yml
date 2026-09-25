@@ -1,0 +1,22 @@
+# Mirrors es.yml key for key; test/locales_test.rb holds the two together.
+en:
+  controls:
+    start: Start
+    pause: Pause
+    resume: Resume
+    reset: Reset
+    watch: Project
+    deadline: Until
+    fullscreen: Full screen
+    exit_fullscreen: Exit full screen
+    light_mode: Switch to light mode
+    dark_mode: Switch to dark mode
+  space: Space
+  units:
+    minutes: minutes
+    seconds: seconds
+  refusals:
+    wait: Hold on a moment.
+    zero: Give it at least a second.
+    deadline_passed: That hour has passed.
+    deadline_beyond: One hour at most.

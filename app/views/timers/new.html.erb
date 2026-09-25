@@ -3,8 +3,9 @@
 <main class="dashboard-page"
       data-controller="shortcuts duration"
       data-duration-max-value="<%= Timer::MAX_DURATION %>"
-      data-duration-passed-message-value="<%= Timer::DEADLINE_PASSED %>"
-      data-duration-beyond-message-value="<%= Timer::DEADLINE_BEYOND %>"
+      data-duration-message-value="<%= t("refusals.zero") %>"
+      data-duration-passed-message-value="<%= t("refusals.deadline_passed") %>"
+      data-duration-beyond-message-value="<%= t("refusals.deadline_beyond") %>"
       data-action="submit->duration#submit keydown@window->shortcuts#handle">
   <%# One form, two ways out. Iniciar submits with start; the create controller
       takes over Proyectar, which points two tabs. With JavaScript off it posts
@@ -29,18 +30,18 @@
 
     <%# No Reiniciar: nothing yet to put back. %>
     <div class="controls">
-      <%= form.submit "Iniciar", name: "start",
-                      class: "control start", title: "Iniciar (Espacio)" %>
+      <%= form.submit t("controls.start"), name: "start",
+                      class: "control start", title: "#{t("controls.start")} (#{t("space")})" %>
 
       <%# Empty until the client fills it: the options are instants, and the
           zone is the browser's. Only hours inside MAX_DURATION are offered, so
           an hour is never picked and then refused. No name — the instant
           travels in the hidden field above. %>
-      <label class="control deadline" title="Hasta las (H)"
+      <label class="control deadline" title="<%= t("controls.deadline") %> (H)"
              data-action="click->duration#openList">
-        <span class="caption">Hasta las</span>
+        <span class="caption"><%= t("controls.deadline") %></span>
         <select data-duration-target="time"
-                aria-label="Hasta las"
+                aria-label="<%= t("controls.deadline") %>"
                 data-action="change->duration#aim
                              mousedown->duration#restock
                              focus->duration#restock">
@@ -59,7 +60,7 @@
         dashboard's. check runs first, and project drops what it prevents. %>
     <button type="submit" class="control watch"
             data-action="click->duration#check click->create#project"
-            aria-label="Proyectar" title="Proyectar (P)">
+            aria-label="<%= t("controls.watch") %>" title="<%= t("controls.watch") %> (P)">
       <%= render "shared/watch_icon" %>
     </button>
   <% end %>

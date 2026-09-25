@@ -6,12 +6,18 @@ class Timer < ApplicationRecord
   # One hour. The pages hand it to duration_controller.js, so this is the one
   # definition of the ceiling.
   MAX_DURATION = 60 * 60
-  # Why an hour was refused. The entry page hands both to the client, so the
-  # two halves of the check say the same thing.
-  DEADLINE_PASSED = "Esa hora ya pasó."
-  DEADLINE_BEYOND = "Máximo una hora."
+  # Why an hour was refused, as the key of the sentence under refusals in
+  # config/locales. The controller says it in the browser's language, and the
+  # entry page hands the same sentences to the client, so the two halves of
+  # the check say the same thing.
+  class UnreachableDeadline < StandardError
+    attr_reader :reason
 
-  UnreachableDeadline = Class.new(StandardError)
+    def initialize(reason)
+      @reason = reason
+      super(reason.to_s)
+    end
+  end
   RETENTION = 30.days
   # A duration as a URL segment: /10m, /45s, /5m30s. Cased classes, not /i,
   # which a route constraint drops. Unanchored: route constraints reject \A.
@@ -70,8 +76,8 @@ class Timer < ApplicationRecord
   def self.running_until(deadline)
     seconds = (deadline - Time.current).ceil
 
-    raise UnreachableDeadline, DEADLINE_PASSED unless seconds.positive?
-    raise UnreachableDeadline, DEADLINE_BEYOND if seconds > MAX_DURATION
+    raise UnreachableDeadline, :deadline_passed unless seconds.positive?
+    raise UnreachableDeadline, :deadline_beyond if seconds > MAX_DURATION
 
     create!(duration: seconds, status: :running, started_at: deadline - seconds)
   end
@@ -145,15 +151,27 @@ class Timer < ApplicationRecord
   end
 
   private
-    # Two streams: the watch page subscribes only to the shared one, so it
-    # never sees the control slug the controls embed.
+    # Two streams per language. The watch page subscribes only to the shared
+    # one, so it never sees the control slug the controls embed; and both
+    # partials carry words, rendered here with no request to say whose, so
+    # each page listens on the stream of the language it was served in.
     def broadcast_state
-      broadcast_clock
-      broadcast_replace_to [ self, :control ], target: "timer_controls", partial: "timers/controls", locals: { timer: self }
+      in_each_locale do |locale|
+        broadcast_clock_to(locale)
+        broadcast_replace_to [ self, :control, locale ], target: "timer_controls", partial: "timers/controls", locals: { timer: self }
+      end
     end
 
     def broadcast_clock
-      broadcast_replace_to self, target: "timer_clock", partial: "timers/clock", locals: { timer: self }
+      in_each_locale { broadcast_clock_to(it) }
+    end
+
+    def broadcast_clock_to(locale)
+      broadcast_replace_to [ self, locale ], target: "timer_clock", partial: "timers/clock", locals: { timer: self }
+    end
+
+    def in_each_locale
+      I18n.available_locales.each { |locale| I18n.with_locale(locale) { yield locale } }
     end
 
     def fill_remaining_seconds
