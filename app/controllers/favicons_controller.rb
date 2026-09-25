@@ -7,10 +7,10 @@ class FaviconsController < ApplicationController
   # the tab.
   content_security_policy false
 
-  # The accent zinc where it is deployed, Iniciar's lime on a local server, so
+  # Iniciar's lime where it is deployed, the accent zinc on a local server, so
   # a tab says which timer it is on. One ring either way, not one per scheme:
   # both read on either background, and the dot is the ink that still swaps.
-  RING = { local: "#84cc16", deployed: "#71717a" }.freeze
+  RING = { local: "#71717a", deployed: "#84cc16" }.freeze
 
   def show
     expires_in 1.day, public: true

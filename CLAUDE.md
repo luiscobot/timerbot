@@ -212,8 +212,8 @@ controls. Nothing listens on a bare stream any more.
   `<input>` into, which carries its own `aria-label` instead.
 - The tab icon is one SVG, rendered by `favicons#show` instead of sitting in
   `public/`, because its ring is `currentColor` and the color the root carries
-  is the environment's: Iniciar's lime wherever `Rails.env.local?` holds, the
-  accent zinc where it is deployed, so a tab says which timer it is on. One
+  is the environment's: the accent zinc wherever `Rails.env.local?` holds,
+  Iniciar's lime where it is deployed, so a tab says which timer it is on. One
   ring for both schemes, since each reads on either background; the dot is the
   ink and still swaps. The response carries no policy — its `<style>` is those
   colors and can hold no nonce, being cached — and the home-screen PNG has no

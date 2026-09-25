@@ -9,19 +9,19 @@ class FaviconsControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "stroke: currentColor"
   end
 
-  test "a local server rings the mark in lime" do
+  test "a local server rings the mark in zinc" do
     get "/favicon.svg"
 
-    assert_includes response.body, %(color="#84cc16")
+    assert_includes response.body, %(color="#71717a")
   end
 
-  test "a deployed one rings it in zinc" do
+  test "a deployed one rings it in lime" do
     original = Rails.env
     Rails.env = "production"
 
     get "/favicon.svg"
 
-    assert_includes response.body, %(color="#71717a")
+    assert_includes response.body, %(color="#84cc16")
   ensure
     Rails.env = original
   end
