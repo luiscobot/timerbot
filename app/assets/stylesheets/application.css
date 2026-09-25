@@ -516,9 +516,14 @@ button {
    fractional width and take the whole row off the pixel grid. Boxed to a whole
    number, with the slack falling into the gap after it. min-, because this
    text never changes: the width settles at load, on whichever face the swap
-   leaves it in, so a wide fallback growing the box moves nothing. */
+   leaves it in, so a wide fallback growing the box moves nothing. One number
+   per language, since the word is: "Hasta las" is 70px in Inter, "Until" 35. */
 .deadline .caption {
   min-width: 72px;
+}
+
+.deadline .caption:lang(en) {
+  min-width: 36px;
 }
 
 /* A select inherits neither font nor ink; the pill shows the ring. Its own
